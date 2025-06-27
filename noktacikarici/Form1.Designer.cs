@@ -139,9 +139,9 @@
             label3.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 162);
             label3.Location = new Point(180, 263);
             label3.Name = "label3";
-            label3.Size = new Size(174, 21);
+            label3.Size = new Size(171, 21);
             label3.TabIndex = 11;
-            label3.Text = "Varsayılan Formak A3";
+            label3.Text = "Varsayılan Format A3";
             // 
             // Form1
             // 
