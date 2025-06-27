@@ -28,16 +28,15 @@ namespace noktacikarici
 
             if (ofd.ShowDialog() == DialogResult.OK)
             {
-                // Resmi yükle
                 orijinalResim = new Bitmap(ofd.FileName);
 
-                // PictureBox'a resmi ata
+
                 pictureBox1.Image = orijinalResim;
 
-                // PictureBox sığdırma ayarı (bir kez Form_Load'da da verebilirsin)
+                
                 pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
 
-                // Dosya yolunu göster
+
                 txtDosyaYolu.Text = ofd.FileName;
 
                 secilenDosyaYolu = ofd.FileName;
@@ -69,10 +68,10 @@ namespace noktacikarici
                 return;
             }
 
-            // ✅ Direkt dosya yolundan oku (Hatasız!)
+           
             Image<Bgr, byte> imageCV = new Image<Bgr, byte>(secilenDosyaYolu);
 
-            // 2. Griye çevir ve kenarları bul
+
             Image<Gray, byte> gray = imageCV.Convert<Gray, byte>();
             edges = gray.Canny(100, 200);
 
@@ -81,21 +80,20 @@ namespace noktacikarici
 
             List<Point> allSampledPoints = new List<Point>();
 
-            // Her kontur için orantılı örnekleme yap
             int toplamKonturUzunlugu = 0;
             List<VectorOfPoint> konturListesi = new List<VectorOfPoint>();
 
             for (int i = 0; i < contours.Size; i++)
             {
                 double len = CvInvoke.ArcLength(contours[i], false);
-                if (len > 50) // Gürültüyü azaltmak için kısa konturları atla
+                if (len > 50) 
                 {
                     toplamKonturUzunlugu += (int)len;
                     konturListesi.Add(contours[i]);
                 }
             }
 
-            // Her konturdan orantılı sayıda nokta örnekle
+
             foreach (var kontur in konturListesi)
             {
                 List<Point> konturNoktalari = kontur.ToArray().ToList();
@@ -111,7 +109,6 @@ namespace noktacikarici
                 }
             }
 
-            // Eğer nokta yetmezse en büyük konturden doldur
             if (allSampledPoints.Count < noktaSayi)
             {
                 var eksik = noktaSayi - allSampledPoints.Count;
@@ -121,7 +118,7 @@ namespace noktacikarici
                     allSampledPoints.AddRange(ekNoktalar);
             }
 
-            // Sonuç listesi
+
             List<Point> sampledPoints = allSampledPoints;
 
 
@@ -130,16 +127,15 @@ namespace noktacikarici
 
             if (rbtnA4.Checked)
             {
-                genislik = 2480;    // A4 boyutları - 300 DPI
+                genislik = 2480;    
                 yukseklik = 3508;
             }
             else
             {
-                genislik = 3508;    // A3 boyutları - 300 DPI
+                genislik = 3508;    
                 yukseklik = 4961;
             }
 
-            // 8. Yeni bitmap oluştur ve noktaları çiz
             Bitmap sonuc = new Bitmap(genislik, yukseklik);
             using (Graphics g = Graphics.FromImage(sonuc))
             {
@@ -160,10 +156,8 @@ namespace noktacikarici
                 }
             }
 
-            // 6. PictureBox'ta göster
             pictureBox1.Image = sonuc;
 
-            // 7. Dışa aktar için kaydet
             cizilmisBitmap = sonuc;
         }
 
