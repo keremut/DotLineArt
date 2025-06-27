@@ -28,23 +28,19 @@
         /// </summary>
         private void InitializeComponent()
         {
-            pictureBox1 = new PictureBox();
             btnResimSec = new Button();
             btnNoktaOlustur = new Button();
             btnDisaAktar = new Button();
             txtDosyaYolu = new TextBox();
             label1 = new Label();
             btnCizimiGoster = new Button();
+            txtNoktaSayisi = new TextBox();
+            label2 = new Label();
+            pictureBox1 = new PictureBox();
+            rbtnA4 = new RadioButton();
+            label3 = new Label();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
-            // 
-            // pictureBox1
-            // 
-            pictureBox1.Location = new Point(399, 26);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(389, 366);
-            pictureBox1.TabIndex = 0;
-            pictureBox1.TabStop = false;
             // 
             // btnResimSec
             // 
@@ -58,7 +54,7 @@
             // 
             // btnNoktaOlustur
             // 
-            btnNoktaOlustur.Location = new Point(49, 112);
+            btnNoktaOlustur.Location = new Point(49, 160);
             btnNoktaOlustur.Name = "btnNoktaOlustur";
             btnNoktaOlustur.Size = new Size(118, 33);
             btnNoktaOlustur.TabIndex = 2;
@@ -68,7 +64,7 @@
             // 
             // btnDisaAktar
             // 
-            btnDisaAktar.Location = new Point(49, 217);
+            btnDisaAktar.Location = new Point(49, 310);
             btnDisaAktar.Name = "btnDisaAktar";
             btnDisaAktar.Size = new Size(118, 33);
             btnDisaAktar.TabIndex = 3;
@@ -94,19 +90,68 @@
             // 
             // btnCizimiGoster
             // 
-            btnCizimiGoster.Location = new Point(49, 165);
+            btnCizimiGoster.Location = new Point(49, 110);
             btnCizimiGoster.Name = "btnCizimiGoster";
             btnCizimiGoster.Size = new Size(118, 33);
             btnCizimiGoster.TabIndex = 7;
             btnCizimiGoster.Text = "Çizimi Göster";
             btnCizimiGoster.UseVisualStyleBackColor = true;
-            btnCizimiGoster.Click += btnCizimiGoster_Click;
+            // 
+            // txtNoktaSayisi
+            // 
+            txtNoktaSayisi.Location = new Point(236, 206);
+            txtNoktaSayisi.Name = "txtNoktaSayisi";
+            txtNoktaSayisi.Size = new Size(118, 23);
+            txtNoktaSayisi.TabIndex = 8;
+            txtNoktaSayisi.KeyPress += txtNoktaSayisi_KeyPress;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(49, 214);
+            label2.Name = "label2";
+            label2.Size = new Size(161, 15);
+            label2.TabIndex = 9;
+            label2.Text = "Nokta Sayısı (varsayılan 500) :";
+            // 
+            // pictureBox1
+            // 
+            pictureBox1.Location = new Point(399, 26);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(389, 366);
+            pictureBox1.TabIndex = 0;
+            pictureBox1.TabStop = false;
+            // 
+            // rbtnA4
+            // 
+            rbtnA4.AutoSize = true;
+            rbtnA4.Location = new Point(51, 263);
+            rbtnA4.Name = "rbtnA4";
+            rbtnA4.Size = new Size(39, 19);
+            rbtnA4.TabIndex = 10;
+            rbtnA4.TabStop = true;
+            rbtnA4.Text = "A4";
+            rbtnA4.UseVisualStyleBackColor = true;
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 162);
+            label3.Location = new Point(180, 263);
+            label3.Name = "label3";
+            label3.Size = new Size(174, 21);
+            label3.TabIndex = 11;
+            label3.Text = "Varsayılan Formak A3";
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(label3);
+            Controls.Add(rbtnA4);
+            Controls.Add(label2);
+            Controls.Add(txtNoktaSayisi);
             Controls.Add(btnCizimiGoster);
             Controls.Add(label1);
             Controls.Add(txtDosyaYolu);
@@ -123,13 +168,16 @@
         }
 
         #endregion
-
-        private PictureBox pictureBox1;
         private Button btnResimSec;
         private Button btnNoktaOlustur;
         private Button btnDisaAktar;
         private TextBox txtDosyaYolu;
         private Label label1;
         private Button btnCizimiGoster;
+        private TextBox txtNoktaSayisi;
+        private Label label2;
+        private PictureBox pictureBox1;
+        private RadioButton rbtnA4;
+        private Label label3;
     }
 }

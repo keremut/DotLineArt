@@ -1,5 +1,7 @@
 ﻿using Emgu.CV.Structure;
 using Emgu.CV;
+using Emgu.CV.Util;
+
 
 namespace noktacikarici
 {
@@ -9,6 +11,8 @@ namespace noktacikarici
         private Bitmap cizilmisBitmap;
         private string secilenDosyaYolu;
         Image<Gray, byte> edges;
+        private int noktaSayi = 0;
+
         public Form1()
         {
 
@@ -17,6 +21,7 @@ namespace noktacikarici
 
         private void btnResimSec_Click(object sender, EventArgs e)
         {
+
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Title = "Bir resim seçin";
             ofd.Filter = "Resim Dosyaları|*.jpg;*.jpeg;*.png;*.bmp";
@@ -39,6 +44,7 @@ namespace noktacikarici
             }
         }
 
+
         private void Form1_Load(object sender, EventArgs e)
         {
             txtDosyaYolu.Enabled = false;
@@ -46,6 +52,17 @@ namespace noktacikarici
 
         private void btnNoktaOlustur_Click(object sender, EventArgs e)
         {
+
+            if (noktaSayi == 0)
+            {
+                noktaSayi = 500;
+            }
+            if (txtNoktaSayisi.Text != "")
+            {
+                int sayi = Convert.ToInt16(txtNoktaSayisi.Text);
+                noktaSayi = sayi;
+            }
+
             if (orijinalResim == null)
             {
                 MessageBox.Show("Lütfen önce bir resim seçin.");
@@ -57,90 +74,79 @@ namespace noktacikarici
 
             // 2. Griye çevir ve kenarları bul
             Image<Gray, byte> gray = imageCV.Convert<Gray, byte>();
-            Image<Gray, byte> edges = gray.Canny(100, 200);
+            edges = gray.Canny(100, 200);
 
-            // 3. Kenar piksellerini al
-            List<Point> edgePoints = new List<Point>();
-            for (int y = 0; y < edges.Height; y++)
+            VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
+            CvInvoke.FindContours(edges, contours, null, Emgu.CV.CvEnum.RetrType.External, Emgu.CV.CvEnum.ChainApproxMethod.ChainApproxSimple);
+
+            List<Point> allSampledPoints = new List<Point>();
+
+            // Her kontur için orantılı örnekleme yap
+            int toplamKonturUzunlugu = 0;
+            List<VectorOfPoint> konturListesi = new List<VectorOfPoint>();
+
+            for (int i = 0; i < contours.Size; i++)
             {
-                for (int x = 0; x < edges.Width; x++)
+                double len = CvInvoke.ArcLength(contours[i], false);
+                if (len > 50) // Gürültüyü azaltmak için kısa konturları atla
                 {
-                    if (edges.Data[y, x, 0] > 0)
-                        edgePoints.Add(new Point(x, y));
+                    toplamKonturUzunlugu += (int)len;
+                    konturListesi.Add(contours[i]);
                 }
             }
 
-            // 4. Seyrekleştirme (örnek: her 10. noktayı al)
-            //List<Point> sampledPoints = new List<Point>();
-            //for (int i = 0; i < edgePoints.Count; i += 40)
-            //    sampledPoints.Add(edgePoints[i]);
-            List<Point> sampledPoints = new List<Point>();
-            int hedefNoktaSayisi = 1000;
-
-            if (edgePoints.Count < hedefNoktaSayisi)
+            // Her konturdan orantılı sayıda nokta örnekle
+            foreach (var kontur in konturListesi)
             {
-                sampledPoints = edgePoints;
+                List<Point> konturNoktalari = kontur.ToArray().ToList();
+                double konturUzunluk = CvInvoke.ArcLength(new VectorOfPoint(konturNoktalari.ToArray()), false);
+                int buKonturIcinNoktaSayisi = (int)((konturUzunluk / toplamKonturUzunlugu) * noktaSayi);
+
+                double adim = konturNoktalari.Count / (double)Math.Max(1, buKonturIcinNoktaSayisi);
+                for (int i = 0; i < buKonturIcinNoktaSayisi; i++)
+                {
+                    int index = (int)(i * adim);
+                    if (index < konturNoktalari.Count)
+                        allSampledPoints.Add(konturNoktalari[index]);
+                }
+            }
+
+            // Eğer nokta yetmezse en büyük konturden doldur
+            if (allSampledPoints.Count < noktaSayi)
+            {
+                var eksik = noktaSayi - allSampledPoints.Count;
+                var enBuyukKontur = konturListesi.OrderByDescending(c => CvInvoke.ArcLength(c, false)).FirstOrDefault();
+                var ekNoktalar = enBuyukKontur?.ToArray()?.Take(eksik).ToList();
+                if (ekNoktalar != null)
+                    allSampledPoints.AddRange(ekNoktalar);
+            }
+
+            // Sonuç listesi
+            List<Point> sampledPoints = allSampledPoints;
+
+
+            
+            int genislik, yukseklik;
+
+            if (rbtnA4.Checked)
+            {
+                genislik = 2480;    // A4 boyutları - 300 DPI
+                yukseklik = 3508;
             }
             else
             {
-                double adim = (double)edgePoints.Count / hedefNoktaSayisi;
-
-                for (int i = 0; i < hedefNoktaSayisi; i++)
-                {
-                    int index = (int)(i * adim);
-                    sampledPoints.Add(edgePoints[index]);
-                }
+                genislik = 3508;    // A3 boyutları - 300 DPI
+                yukseklik = 4961;
             }
 
-
-            // 5. Yeni Bitmap'e noktaları ve numaraları çiz
-            //Bitmap sonuc = new Bitmap(edges.Width, edges.Height);
-            //using (Graphics g = Graphics.FromImage(sonuc))
-            //{
-            //    g.Clear(Color.White);
-            //    Font font = new Font("Arial", 14);
-            //    Brush brush = Brushes.Black;
-            //    int index = 1;
-            //    foreach (Point p in sampledPoints)
-            //    {
-            //        g.FillEllipse(brush, p.X - 2, p.Y - 2, 4, 4); // nokta
-            //        g.DrawString(index.ToString(), font, brush, p.X + 4, p.Y + 4); // numara
-            //        index++;
-            //    }
-            //}
-            //int a4Genislik = 2480;
-            //int a4Yukseklik = 3508;
-            //Bitmap sonuc = new Bitmap(a4Genislik, a4Yukseklik);
-
-            //using (Graphics g = Graphics.FromImage(sonuc))
-            //{
-            //    g.Clear(Color.White);
-            //    Font font = new Font("Arial", 6);
-            //    float oranX = (float)a4Genislik / edges.Width;
-            //    float oranY = (float)a4Yukseklik / edges.Height;
-
-            //    int index = 1;
-            //    foreach (Point p in sampledPoints)
-            //    {
-            //        float x = p.X * oranX;
-            //        float y = p.Y * oranY;
-
-            //        g.FillEllipse(Brushes.Black, x - 2, y - 2, 4, 4);
-            //        g.DrawString(index.ToString(), font, Brushes.Black, x + 4, y + 4);
-            //        index++;
-            //    }
-            //}
-
-            int a3Genislik = 3508;
-            int a3Yukseklik = 4961;
-            Bitmap sonuc = new Bitmap(a3Genislik, a3Yukseklik);
-
+            // 8. Yeni bitmap oluştur ve noktaları çiz
+            Bitmap sonuc = new Bitmap(genislik, yukseklik);
             using (Graphics g = Graphics.FromImage(sonuc))
             {
                 g.Clear(Color.White);
-                Font font = new Font("Arial", 12, FontStyle.Bold);
-                float oranX = (float)a3Genislik / edges.Width;
-                float oranY = (float)a3Yukseklik / edges.Height;
+                Font font = new Font("Arial", 10, FontStyle.Bold);
+                float oranX = (float)genislik / edges.Width;
+                float oranY = (float)yukseklik / edges.Height;
 
                 int index = 1;
                 foreach (Point p in sampledPoints)
@@ -148,7 +154,7 @@ namespace noktacikarici
                     float x = p.X * oranX;
                     float y = p.Y * oranY;
 
-                    g.FillEllipse(Brushes.Black, x - 6, y - 6, 12, 12);
+                    g.FillEllipse(Brushes.Black, x - 5, y - 5, 10, 10);
                     g.DrawString(index.ToString(), font, Brushes.Black, x + 10, y + 10);
                     index++;
                 }
@@ -187,9 +193,13 @@ namespace noktacikarici
             }
         }
 
-        private void btnCizimiGoster_Click(object sender, EventArgs e)
+
+        private void txtNoktaSayisi_KeyPress(object sender, KeyPressEventArgs e)
         {
-            MessageBox.Show("Bu Özellik Geliştirilecek");
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
         }
     }
 }
